@@ -9,7 +9,7 @@ const reducer = (state, action) => {
     case "add_tweet":
       return {
         ...state,
-        tweets: [action.payload, ...state.tweets],
+        tweets: [action.payload, ...state.tweets.slice(0,30)],
         error: null,
         isWaiting: false,
         errors: [],
@@ -41,13 +41,19 @@ const TweetFeed = () => {
     let socket;
 
     if (process.env.NODE_ENV === "development") {
-      socket = socketIOClient("http://localhost:3001/");
+      socket = socketIOClient("http://localhost:3005/");
+      console.log('using localhost:3005');
     } else {
       socket = socketIOClient("/");
+      console.log('using /');
     }
 
-    socket.on("connect", () => {});
+    socket.on("connect", () => {
+      console.log('connect message received from server');
+      dispatch({ type: "_", payload: {} });
+    });
     socket.on("tweet", (json) => {
+      //console.log('tweet received', json.data);
       if (json.data) {
         dispatch({ type: "add_tweet", payload: json });
       }
@@ -122,7 +128,7 @@ const TweetFeed = () => {
   }, []);
 
   const showTweets = () => {
-    if (tweets.length > 0) {
+    if (tweets.length > 0) {      
       return (
         <React.Fragment>
           {tweets.map((tweet) => (
